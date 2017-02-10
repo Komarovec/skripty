@@ -27,3 +27,4 @@ do
     echo "Jste Pán Času" >> log
   fi
 done
+echo " " >> log
