@@ -1,5 +1,5 @@
 #!/bin/bash
-zprava="echo "ahoj""
+zprava="./InfCo.sh"
 seznam=`tac /etc/passwd | head -n 28 | awk -F ":" '{print $1}'`
 uzivatel=`echo $seznam | awk -F " " '{print $1}'`
 $zprava | write $uzivatel
