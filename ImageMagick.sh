@@ -31,11 +31,11 @@ function getPathMenu {
 	clear
 	echo "------------------------------"
 	echo "----- Enter path of your -----"
-	echo "-----       $1"
+	echo "-----      Dir/File      -----"
 	echo "------------------------------"
 	echo "-- 	Example:       -----"
-	echo "-- home/user/picture.png -----"
-	echo "-- home/user/pictures    -----"
+	echo "--/home/user/picture.png -----"
+	echo "--/home/user/pictures    -----"
 	echo "------------------------------"
 	echo "Type your path: "
 }
@@ -117,7 +117,7 @@ function choice {
 
 function getPath {
 	dirOrFilMenu
-	choice 0 2 "Type your choice: "
+	choice 1 2 "Type your choice: "
 	DoF=$nChoice
 	getPathMenu
 	read path
@@ -125,7 +125,56 @@ function getPath {
 	return $path
 }
 
-#Main Function
+function stop {
+	echo "[ Press any button to continue. ]"
+	read 
+}
+
+function changeFormat {
+	choice 0 2 "Type your choice: "
+		format=$nChoice
+		getPath
+		if [[ "$format" == '1' ]]; then
+			if [[ "$DoF" == '2' ]]; then
+				pathShort=`echo $path | awk -F "." '{print $1}'`
+				echo "Converting..."
+				convert $path $pathShort".png"
+				echo "Done!"
+				stop			
+			else
+				cd $path
+				for file in *.jpeg; do
+					fileShort=`echo $file | awk -F "." '{print $1}'`
+					echo "Converting file $file...." 
+					convert $file $fileShort".png"
+				done
+				echo "Done!"
+				stop
+			fi
+		else
+			if [[ "$DoF" == '2' ]]; then
+				pathShort=`echo $path | awk -F "." '{print $1}'`
+				echo "Converting..."
+				convert $path $pathShort".jpg"
+				echo "Done!"
+				stop			
+			else
+				cd $path
+				for file in *.png; do
+					fileShort=`echo $file | awk -F "." '{print $1}'`
+					echo "Converting file $file...." 
+					convert $file $fileShort".jpg"
+				done
+				echo "Done!"
+				stop
+			fi
+		fi
+}
+
+#function changeQuality {
+#}
+
+#Main Function         Important --> DoF (1 - Dir, 2 - File); path; nChoice
 while :; do
 	clear
 	mainMenu
@@ -133,15 +182,31 @@ while :; do
 	case "$nChoice" in
 		1)
 			formatMenu
-			choice 0 2 "Type your choice: "
-			format=$nChoice
-			getPath
-			
+			changeFormat
 			;;
 		2)
 			qualityMenu
 			choice 0 100 "Type % (1 - 100): "
 			quality=$nChoice
+			getPath
+			if [[ "$DoF" == 2 ]]; then
+				pathShort=`echo $path | awk -F "." '{print $1}'`
+				pathType=`echo $path | awk -F "." '{print $2}'`
+				echo "Proccesing..."
+				convert $path -quality $quality $pathShort"-quality_"$quality"."$pathType
+				echo "Done!"
+				stop
+			else
+				cd $path
+				for file in *.*; do
+					fileShort=`echo $file | awk -F "." '{print $1}'`
+					fileType=`echo $file | awk -F "." '{print $2}'`
+					echo "Proccesing file: $file" 
+					convert $file -quality $quality $fileShort"-quality_"$quality"."$fileType
+				done
+				echo "Done!"
+				stop	
+			fi
 			;;
 		3)
 			resizeMenu
@@ -150,6 +215,25 @@ while :; do
 			if [[ "$nChoice" -gt '0' ]]; then 
 				choice 0 100000 "Type height: "
 				height=$nChoice
+				getPath
+				if [[ "$DoF" == 2 ]]; then
+					pathShort=`echo $path | awk -F "." '{print $1}'`
+					pathType=`echo $path | awk -F "." '{print $2}'`
+					echo "Proccesing..."
+					convert $path -resize $width"x"$height $pathShort"-"$width"x"$height"."$pathType
+					echo "Done!"
+					stop
+				else
+					cd $path
+					for file in *.*; do
+						fileShort=`echo $file | awk -F "." '{print $1}'`
+						fileType=`echo $file | awk -F "." '{print $2}'`
+						echo "Proccesing file: $file" 
+					convert $file -resize $width"x"$height $fileShort"-"$width"x"$height"."$fileType
+					done
+				echo "Done!"
+				stop	
+				fi
 			fi
 			;;
 		4)
@@ -163,9 +247,12 @@ while :; do
 			option=$nChoice
 			;;
 		0)
+			clear
+			echo "---------------------------"
 			echo "Do you really want to exit?"
 			echo "Yes	1)"
 			echo "No	2)"
+			echo "---------------------------"
 			choice 1 2
 			if [[ "$nChoice" == '1' ]]; then
 				clear
