@@ -126,6 +126,7 @@ function stop {
 	read 
 }
 
+#Conver dir/file with variable from user
 function shortProcces {
 	getPath
 	if [[ "$DoF" == 2 ]]; then
@@ -149,6 +150,7 @@ function shortProcces {
 	fi
 }
 
+#Decides between different choices, convert file/directory
 function longProcces {
 	choice 0 2 "Type your choice: "
 	var=$nChoice
@@ -212,9 +214,6 @@ function longProcces {
 	fi
 }
 
-#function changeQuality {
-#}
-
 #Main Function         Important --> DoF (1 - Dir, 2 - File); (shortProcces var proccesName)  
 while :; do
 	clear
@@ -270,9 +269,3 @@ while :; do
 			;;
 	esac
 done
-
-
-
-
-
-
