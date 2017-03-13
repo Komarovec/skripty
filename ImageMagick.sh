@@ -90,12 +90,8 @@ function effectsMenu {
 	echo "------------------------------"
 	echo "-----      Effects       -----"
 	echo "------------------------------"
-	echo "-- Effect1            1) -----"
-	echo "-- Effect2            2) -----"
-	echo "-- Effect3            3) -----"
-	echo "-- Effect4            4) -----"
-	echo "-- Effect5            5) -----"
-	echo "-- Effect6            6) -----"
+	echo "-- Implode Effect     1) -----"
+	echo "-- Charcoal Effect    2) -----"
 	echo "-- Back               0) -----"
 	echo "------------------------------"
 }
@@ -130,51 +126,96 @@ function stop {
 	read 
 }
 
-function changeFormat {
+function shortProcces {
+	getPath
+	if [[ "$DoF" == 2 ]]; then
+		pathShort=`echo $path | awk -F "." '{print $1}'`
+		pathType=`echo $path | awk -F "." '{print $2}'`
+		echo "Proccesing..."
+		convert $path "-"$2 $1 $pathShort"-"$2"_"$1"."$pathType
+		echo "Done!"
+		stop
+	else
+		cd $path
+		for file in *.*; do
+			path=$file
+			pathShort=`echo $path | awk -F "." '{print $1}'`
+			pathType=`echo $path | awk -F "." '{print $2}'`
+			echo "Proccesing file: $path" 
+			convert $path "-"$2 $1 $pathShort"-"$2"_"$1"."$pathType
+		done
+		echo "Done!"
+		stop	
+	fi
+}
+
+function longProcces {
 	choice 0 2 "Type your choice: "
-		format=$nChoice
-		getPath
-		if [[ "$format" == '1' ]]; then
-			if [[ "$DoF" == '2' ]]; then
-				pathShort=`echo $path | awk -F "." '{print $1}'`
-				echo "Converting..."
+	var=$nChoice
+	getPath
+	if [[ "$var" == '1' ]]; then
+		if [[ "$DoF" == '2' ]]; then
+			pathShort=`echo $path | awk -F "." '{print $1}'`
+			pathType=`echo $path | awk -F "." '{print $2}'`
+			echo "Proccesing..."
+			if [[ "$1" == '1' ]]; then
 				convert $path $pathShort".png"
-				echo "Done!"
-				stop			
 			else
-				cd $path
-				for file in *.jpeg; do
-					fileShort=`echo $file | awk -F "." '{print $1}'`
-					echo "Converting file $file...." 
-					convert $file $fileShort".png"
-				done
-				echo "Done!"
-				stop
+				convert $path -implode 1 $pathShort"-imploded."$pathType
 			fi
+			echo "Done!"
+			stop			
 		else
-			if [[ "$DoF" == '2' ]]; then
+			cd $path
+			for file in $2; do
+				path=$file
 				pathShort=`echo $path | awk -F "." '{print $1}'`
-				echo "Converting..."
-				convert $path $pathShort".jpg"
-				echo "Done!"
-				stop			
-			else
-				cd $path
-				for file in *.png; do
-					fileShort=`echo $file | awk -F "." '{print $1}'`
-					echo "Converting file $file...." 
-					convert $file $fileShort".jpg"
-				done
-				echo "Done!"
-				stop
-			fi
+				pathType=`echo $path | awk -F "." '{print $2}'`
+				echo "Proccesing file $path...."
+				if [[ "$1" == '1' ]]; then
+					convert $path $pathShort".png"
+				else
+					convert $path -implode 1 $pathShort"-imploded."$pathType
+				fi
+			done
+			echo "Done!"
+			stop
 		fi
+	else
+		if [[ "$DoF" == '2' ]]; then
+			pathShort=`echo $path | awk -F "." '{print $1}'`
+			pathType=`echo $path | awk -F "." '{print $2}'`
+			echo "Proccesing..."
+			if [[ "$1" == '1' ]]; then
+				convert $path $pathShort".jpg"
+			else
+				convert $path -charcoal 2 $pathShort"-charcoal."$pathType
+			fi
+			echo "Done!"
+			stop			
+		else
+			cd $path
+			for file in $3; do
+				path=$file
+				pathShort=`echo $path | awk -F "." '{print $1}'`
+				pathType=`echo $path | awk -F "." '{print $2}'`
+				echo "Proccesing file $path...."
+				if [[ "$1" == '1' ]]; then
+					convert $path $pathShort".jpg"
+				else
+					convert $path -charcoal 2 $pathShort"-charcoal."$pathType
+				fi
+			done
+			echo "Done!"
+			stop
+		fi
+	fi
 }
 
 #function changeQuality {
 #}
 
-#Main Function         Important --> DoF (1 - Dir, 2 - File); path; nChoice
+#Main Function         Important --> DoF (1 - Dir, 2 - File); (shortProcces var proccesName)  
 while :; do
 	clear
 	mainMenu
@@ -182,31 +223,13 @@ while :; do
 	case "$nChoice" in
 		1)
 			formatMenu
-			changeFormat
+			longProcces '1' "*.jpg" "*.png"
 			;;
 		2)
 			qualityMenu
 			choice 0 100 "Type % (1 - 100): "
-			quality=$nChoice
-			getPath
-			if [[ "$DoF" == 2 ]]; then
-				pathShort=`echo $path | awk -F "." '{print $1}'`
-				pathType=`echo $path | awk -F "." '{print $2}'`
-				echo "Proccesing..."
-				convert $path -quality $quality $pathShort"-quality_"$quality"."$pathType
-				echo "Done!"
-				stop
-			else
-				cd $path
-				for file in *.*; do
-					fileShort=`echo $file | awk -F "." '{print $1}'`
-					fileType=`echo $file | awk -F "." '{print $2}'`
-					echo "Proccesing file: $file" 
-					convert $file -quality $quality $fileShort"-quality_"$quality"."$fileType
-				done
-				echo "Done!"
-				stop	
-			fi
+			var=$nChoice
+			shortProcces $var "quality"	
 			;;
 		3)
 			resizeMenu
@@ -215,36 +238,19 @@ while :; do
 			if [[ "$nChoice" -gt '0' ]]; then 
 				choice 0 100000 "Type height: "
 				height=$nChoice
-				getPath
-				if [[ "$DoF" == 2 ]]; then
-					pathShort=`echo $path | awk -F "." '{print $1}'`
-					pathType=`echo $path | awk -F "." '{print $2}'`
-					echo "Proccesing..."
-					convert $path -resize $width"x"$height $pathShort"-"$width"x"$height"."$pathType
-					echo "Done!"
-					stop
-				else
-					cd $path
-					for file in *.*; do
-						fileShort=`echo $file | awk -F "." '{print $1}'`
-						fileType=`echo $file | awk -F "." '{print $2}'`
-						echo "Proccesing file: $file" 
-					convert $file -resize $width"x"$height $fileShort"-"$width"x"$height"."$fileType
-					done
-				echo "Done!"
-				stop	
-				fi
+				var=`echo $width"x"$height`
+				shortProcces $var "resize"
 			fi
 			;;
 		4)
 			rotateMenu
 			choice -360 360 "Type angle: "
-			angle=$nChoice
+			var=$nChoice
+			shortProcces $var "rotate"
 			;;
 		5)
 			effectsMenu
-			choice 0 6 "Type your choice: "
-			option=$nChoice
+			longProcces '2' "*.*" "*.*"
 			;;
 		0)
 			clear
